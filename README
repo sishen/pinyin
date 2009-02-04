@@ -1,0 +1,19 @@
+= Pinyin
+Turn chinese to pronunciation
+
+This class enable ruby programs to turn chinese hanzi to its
+pronunciation, that is, pinyin. It supports the GB2312 character
+set coding table.
+
+== Usage
+
+require "pinyin"
+
+pinyin = Chinese::Pronunciation.to_pinyin("xxx")
+
+== CHANGES
+v0.1.0 July 18
+* initial release
+
+Copyright (c) 2007 Dingding Ye <yedingding@gmail.com>
+Distributed under MIT License
