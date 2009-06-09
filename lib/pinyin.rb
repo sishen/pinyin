@@ -116,17 +116,15 @@ class Chinese
           else
             pinyin += [integer].pack("U")
           end
-          pinyin
         end
-        pinyin.strip!
-        pinyin
+        pinyin.strip
       end
       alias :getPronunciation :to_pinyin
 
       private
 
-      def isChineseUnicode(integer)
-        return integer >= @@Chinese_Unicode_Start && integer <= @@Chinese_Unicode_End
+      def isChineseUnicode(int)
+        (@@Chinese_Unicode_Start..@@Chinese_Unicode_End).include?(int)
       end
 
       def to_Pronunciation(integer)
