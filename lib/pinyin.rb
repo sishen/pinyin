@@ -1,5 +1,6 @@
+# coding: utf-8
 require 'iconv'
-$KCODE = 'u'
+$KCODE = 'u' if RUBY_VERSION < '1.9'
 
 class Chinese
   class UnsupportedChineseError < StandardError; end
@@ -109,24 +110,21 @@ class Chinese
     class << self
       # get the pronunciation of the chinese
       def to_pinyin(chinese)
-        array = chinese.unpack("U*")
-
-        return array.inject("") do |pinyin, int|
-          pinyin += isChinese(int) ? to_Pronunciation(int) : [int].pack("U")
+        return chinese.unpack("U*").inject("") do |pinyin, int|
+          pinyin += isChinese?(int) ? to_Pronunciation(int) : [int].pack("U")
         end.strip
       end
-
       alias :getPronunciation :to_pinyin
 
       private
 
-      def isChinese(int)
-        (@@Chinese_Unicode_Start..@@Chinese_Unicode_End).include?(int)
+      def isChinese?(int)
+        int >= @@Chinese_Unicode_Start && int <= @@Chinese_Unicode_End
       end
 
       def to_Pronunciation(integer)
-        ucs2_string = [integer%256, integer/256].collect {|n| n.chr}.to_s
-        gb_string   = @@UCS2_TO_GB2312.iconv(ucs2_string)
+        ucs2_string = [integer%256, integer/256].collect {|n| n.chr}.join('')
+        gb_string   = @@UCS2_TO_GB2312.iconv(ucs2_string).each_byte.to_a
         raise  UnsupportedChineseError if gb_string.empty?
         return bsearch( gb_string[0]*256 + gb_string[1] )
       end
