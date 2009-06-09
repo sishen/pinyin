@@ -53,6 +53,8 @@ class Chinese
                    0xD7A7 , 0xD7A8 , 0xD7AE , 0xD7B5 , 0xD7BB , 0xD7BD , 0xD7C8 , 0xD7D7 , 0xD7DE ,
                    0xD7E2 , 0xD7EA , 0xD7EC , 0xD7F0 , 0xD7F2
                   ]
+
+    @@SpellListSize = @@SpellList.length
     @@Pronunciation = [
                        "a" , "ai" , "an" , "ang" , "ao" , "ba" , "bai" , "ban" , "bang" ,
                        "bao" , "bei" , "ben" , "beng" , "bian" , "biao" , "bie" , "bin" , "bing" ,
@@ -101,56 +103,39 @@ class Chinese
                       ]
 
     @@Chinese_Unicode_Start = 19968
-    @@Chinese_Unicode_End = 40869
-
-    @@UCS2_TO_GB2312 = Iconv.new("GB2312//IGNORE", "UCS-2//IGNORE")
+    @@Chinese_Unicode_End   = 40869
+    @@UCS2_TO_GB2312        = Iconv.new("GB2312//IGNORE", "UCS-2//IGNORE")
 
     class << self
       # get the pronunciation of the chinese
       def to_pinyin(chinese)
         array = chinese.unpack("U*")
 
-        pinyin = array.inject("") do |pinyin, integer|
-          if isChineseUnicode(integer)
-            pinyin += to_Pronunciation(integer)
-          else
-            pinyin += [integer].pack("U")
-          end
-        end
-        pinyin.strip
+        return array.inject("") do |pinyin, int|
+          pinyin += isChinese(int) ? to_Pronunciation(int) : [int].pack("U")
+        end.strip
       end
+
       alias :getPronunciation :to_pinyin
 
       private
 
-      def isChineseUnicode(int)
+      def isChinese(int)
         (@@Chinese_Unicode_Start..@@Chinese_Unicode_End).include?(int)
       end
 
       def to_Pronunciation(integer)
         ucs2_string = [integer%256, integer/256].collect {|n| n.chr}.to_s
-        gb_string = @@UCS2_TO_GB2312.iconv(ucs2_string)
-        raise UnsupportedChineseError if gb_string.empty?
-        gbnum = gb_string[0]*256 + gb_string[1]
-        spell_idx = bsearch(gbnum)
-        @@Pronunciation[spell_idx]
+        gb_string   = @@UCS2_TO_GB2312.iconv(ucs2_string)
+        raise  UnsupportedChineseError if gb_string.empty?
+        return bsearch( gb_string[0]*256 + gb_string[1] )
       end
 
-      def bsearch(integer)
-        lower = 0
-        upper = @@SpellList.length
-
-        while lower + 1 != upper
-          mid = ((lower + upper) / 2).to_i
-          if (@@SpellList[mid] < integer)
-            lower = mid
-          elsif @@SpellList[mid] == integer
-            return mid
-          else
-            upper = mid
-          end
-        end
-        return upper-1
+      def bsearch(int,lower=0,upper=@@SpellListSize)
+        mid = (lower + upper) / 2
+        return @@Pronunciation[mid] if lower == mid || @@SpellList[mid] == int
+        return bsearch(int,mid,upper) if @@SpellList[mid] < int
+        return bsearch(int,lower,mid) if @@SpellList[mid] > int
       end
     end
   end
