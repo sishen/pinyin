@@ -11,6 +11,11 @@ require "pinyin"
 
 pinyin = Chinese::Pronunciation.to_pinyin("xxx")
 
+== Contribution
+
+Thanks jinzhu(http://github.com/jinzhu). He refactored this gem a lot
+and make a 2x faster for the speed.
+
 == CHANGES
 v0.1.0 July 18
 * initial release
